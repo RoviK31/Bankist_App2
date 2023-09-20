@@ -81,19 +81,27 @@ const inputClosePin = document.querySelector('.form__input--pin');
 /////////////////////////////////////////////////
 // Functions
 
-const displayMovements = function (movements, sort = false) {
+const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = '';
 
-  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+  const movs = sort
+    ? acc.movements.slice().sort((a, b) => a - b)
+    : acc.movements;
 
   movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
+    const date = new Date(acc.movementsDates[i]);
+    const day = `${date.getDate()}`.padStart(2, 0);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = date.getFullYear();
+    const displayDate = `${day}/${month}/${year}`;
     const html = `
       <div class="movements__row">
         <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
+        <div class="movements_date">${displayDate}</div>
         <div class="movements__value">${mov.toFixed(2)}€</div>
       </div>
     `;
@@ -142,7 +150,7 @@ createUsernames(accounts);
 
 const updateUI = function (acc) {
   // Display movements
-  displayMovements(acc.movements);
+  displayMovements(acc);
 
   // Display balance
   calcDisplayBalance(acc);
@@ -155,6 +163,12 @@ const updateUI = function (acc) {
 // Event handlers
 let currentAccount;
 
+// FAKE ALWAYS LOGGED IN
+currentAccount = account1;
+updateUI(currentAccount);
+containerApp.style.opacity = 100;
+
+
 btnLogin.addEventListener('click', function (e) {
   // Prevent form from submitting
   e.preventDefault();
@@ -164,12 +178,21 @@ btnLogin.addEventListener('click', function (e) {
   );
   console.log(currentAccount);
 
-  if (currentAccount?.pin === +(inputLoginPin.value)) {
+  if (currentAccount?.pin === +inputLoginPin.value) {
     // Display UI and message
     labelWelcome.textContent = `Welcome back, ${
       currentAccount.owner.split(' ')[0]
     }`;
     containerApp.style.opacity = 100;
+
+    //Create current date and time 
+    const now = new Date();
+    const day = `${now.getDate()}`.padStart(2, 0);
+    const month = `${now.getMonth() + 1}`.padStart(2, 0);
+    const year = now.getFullYear();
+    const hours = `${now.getHours()}`.padStart(2,0) ;
+    const min = `${now.getMinutes()}`.padStart(2,0);
+    labelDate.textContent = `${day}/${month}/${year}, ${hours}:${min}`;
 
     // Clear input fields
     inputLoginUsername.value = inputLoginPin.value = '';
@@ -182,7 +205,7 @@ btnLogin.addEventListener('click', function (e) {
 
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
-  const amount = +(inputTransferAmount.value);
+  const amount = +inputTransferAmount.value;
   const receiverAcc = accounts.find(
     acc => acc.username === inputTransferTo.value
   );
@@ -198,6 +221,10 @@ btnTransfer.addEventListener('click', function (e) {
     currentAccount.movements.push(-amount);
     receiverAcc.movements.push(amount);
 
+    //Add transfer date 
+    currentAccount.movementsDates.push(new Date().toISOString())
+    receiverAcc.movementsDates.push(new Date().toISOString())
+
     // Update UI
     updateUI(currentAccount);
   }
@@ -212,6 +239,8 @@ btnLoan.addEventListener('click', function (e) {
     // Add movement
     currentAccount.movements.push(amount);
 
+    currentAccount.movementsDates.push(new Date().toISOString())
+
     // Update UI
     updateUI(currentAccount);
   }
@@ -223,7 +252,7 @@ btnClose.addEventListener('click', function (e) {
 
   if (
     inputCloseUsername.value === currentAccount.username &&
-    +(inputClosePin.value) === currentAccount.pin
+    +inputClosePin.value === currentAccount.pin
   ) {
     const index = accounts.findIndex(
       acc => acc.username === currentAccount.username
@@ -254,19 +283,21 @@ btnSort.addEventListener('click', function (e) {
 
 //Base 10 - 0 to 9. 1/10 = 0.1. 3/10 = 3.333333333
 //Binary base 2 - 0 1
-console.log(0.1 + 0.2);
-console.log(0.1 + 0.2 === 0.3);
+// console.log(0.1 + 0.2);
+// console.log(0.1 + 0.2 === 0.3);
 
-//Conversion
-console.log(Number('23'));
-console.log(+'23');
+// //Conversion
+// console.log(Number('23'));
+// console.log(+'23');
 
-//Parsing
-console.log(Number.parseInt('30px',10));
-console.log(Number.parseInt('e30',10));
+// //Parsing
+// console.log(Number.parseInt('30px',10));
+// console.log(Number.parseInt('e30',10));
 
-console.log(Number.parseInt(' 2.5rem '));
-console.log(Number.parseFloat(' 2.5rem '));
+// console.log(Number.parseInt(' 2.5rem '));
+// console.log(Number.parseFloat(' 2.5rem '));
 
-console.log(Number.isNaN(20));
-console.log(Number.isNaN('20'));
+// console.log(Number.isNaN(20));
+// console.log(Number.isNaN('20'));
+
+// * Create a date
